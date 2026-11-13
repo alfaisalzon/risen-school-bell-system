@@ -1,1 +1,670 @@
 
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#075985">
+<title>The Risen High School Bell System</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#edf3f9;color:#183047;
+ font-family:Arial,sans-serif;
+}
+header{
+ background:linear-gradient(135deg,#075985,#102e62);
+ color:white;text-align:center;padding:25px 12px;
+}
+header h1{font-size:22px;margin:0}
+header p{font-size:13px;margin:8px 0 0}
+main{max-width:720px;margin:auto;padding:13px}
+.card{
+ background:white;border-radius:15px;
+ padding:17px;margin-bottom:14px;
+ box-shadow:0 3px 12px #0000000c;
+}
+h3{color:#075985;margin-top:0}
+.clock{
+ font-size:38px;text-align:center;
+ font-weight:bold;color:#075985;margin:12px 0;
+}
+.center{text-align:center}
+.muted{font-size:12px;color:#64748b}
+.status{
+ padding:12px;border-radius:9px;
+ background:#fff1cf;color:#975800;
+ text-align:center;font-weight:bold;
+}
+.status.active{background:#dcfce7;color:#166534}
+button{
+ border:0;border-radius:9px;padding:13px;
+ font-weight:bold;font-size:14px;cursor:pointer;
+}
+button:active{opacity:.8}
+.primary{background:#075985;color:white}
+.green{background:#15803d;color:white}
+.red{background:#dc2626;color:white}
+.gray{background:#e2e8f0;color:#183047}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.full{width:100%}
+.event{
+ padding:14px 0;border-bottom:1px solid #e5e7eb;
+}
+.event:last-child{border:0}
+.eventtop{
+ display:flex;justify-content:space-between;
+ align-items:center;gap:8px;
+}
+.eventname{font-weight:bold}
+.urdu{font-size:12px;color:#64748b;margin-top:4px}
+.eventbottom{
+ display:grid;grid-template-columns:1fr 1fr;
+ gap:12px;margin-top:12px;align-items:center;
+}
+input[type=time]{
+ width:100%;padding:10px;border:1px solid #cbd5e1;
+ border-radius:8px;font-size:16px;
+}
+input[type=checkbox]{
+ width:20px;height:20px;accent-color:#15803d;
+}
+.switch{display:flex;align-items:center;gap:7px;font-size:13px}
+.soundrow{
+ display:flex;align-items:center;
+ justify-content:space-between;gap:10px;
+ padding:12px 0;border-bottom:1px solid #eee;
+}
+.soundrow:last-child{border:0}
+.soundrow button{padding:9px 13px}
+.upload{
+ border:2px dashed #94a3b8;
+ padding:16px;border-radius:10px;text-align:center;
+ background:#f8fafc;
+}
+input[type=file]{max-width:100%;margin:12px 0}
+.note{
+ background:#eff6ff;border-left:4px solid #075985;
+ padding:12px;border-radius:7px;
+ font-size:13px;line-height:1.8;
+}
+footer{text-align:center;padding:20px;color:#64748b;font-size:12px}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🔔 THE RISEN HIGH SCHOOL</h1>
+<p>Professional Automatic School Bell System</p>
+</header>
+
+<main>
+
+<div class="card">
+<div class="center muted" id="date"></div>
+<div class="clock" id="clock">00:00:00</div>
+<div class="center muted" id="day"></div>
+<br>
+<div class="status" id="status">SYSTEM STOPPED</div>
+</div>
+
+<div class="card">
+<h3>🎛️ Main Control Panel</h3>
+<div class="grid">
+<button class="green" onclick="startSystem()">▶ START AUTO</button>
+<button class="red" onclick="stopSystem()">■ STOP AUTO</button>
+</div>
+<br>
+<button class="primary full" onclick="manualBell()">🔔 MANUAL BELL</button>
+</div>
+
+<div class="card">
+<h3>📅 Timetable & Bell Settings</h3>
+<p class="muted">
+تمام اوقات تبدیل کریں۔ جس سرگرمی کی بیل نہیں بجانی اسے OFF کردیں۔
+</p>
+<div id="events"></div>
+<button class="green full" onclick="saveSettings()">💾 SAVE ALL SETTINGS</button>
+</div>
+
+<div class="card">
+<h3>🎵 Assembly Dua Audio</h3>
+<div class="note">
+اسمبلی کے مقررہ وقت پر خاتون کی آواز میں یہ الفاظ چلیں گے، اور اسی لمحے اسمبلی کی بیل بھی شروع ہوگی:
+<br><br>
+<strong>لب پہ آتی ہے دعا بن کے تمنا میری</strong>
+</div>
+
+<br>
+<div class="upload">
+<strong>Upload Assembly Dua MP3</strong>
+<p class="muted">صرف مختصر آڈیو کلپ منتخب کریں جس میں یہی ابتدائی مصرعہ ہو۔</p>
+<input type="file" id="duaFile" accept="audio/mpeg,audio/mp3,audio/*">
+<div id="duaStatus" class="muted">کوئی آڈیو اپ لوڈ نہیں ہوئی</div>
+</div>
+<br>
+<div class="grid">
+<button class="primary" onclick="saveDua()">💾 SAVE AUDIO</button>
+<button class="gray" onclick="testDua()">▶ TEST DUA</button>
+</div>
+<br>
+<button class="red full" onclick="deleteDua()">DELETE DUA AUDIO</button>
+</div>
+
+<div class="card">
+<h3>🔊 Separate Bell Sounds</h3>
+<div class="soundrow">
+<div><b>Assembly Bell</b><br><span class="muted">تین لمبی آوازیں</span></div>
+<button class="primary" onclick="testSound('assembly')">▶ Test</button>
+</div>
+<div class="soundrow">
+<div><b>Period Bell</b><br><span class="muted">ایک مختصر آواز</span></div>
+<button class="primary" onclick="testSound('period')">▶ Test</button>
+</div>
+<div class="soundrow">
+<div><b>Break Bell</b><br><span class="muted">دو آوازیں</span></div>
+<button class="primary" onclick="testSound('break')">▶ Test</button>
+</div>
+<div class="soundrow">
+<div><b>Chhutti Bell</b><br><span class="muted">چار لمبی آوازیں</span></div>
+<button class="primary" onclick="testSound('dismissal')">▶ Test</button>
+</div>
+</div>
+
+<div class="card">
+<h3>📆 Weekly Holiday</h3>
+<label class="switch">
+<input type="checkbox" id="sundayHoliday" checked>
+اتوار کو خودکار بیل بند رکھیں
+</label>
+</div>
+
+<div class="card">
+<h3>📌 Instructions</h3>
+<div class="note">
+1. موبائل کو اسکول کے اسپیکر سے Connect کریں۔<br>
+2. اسمبلی کی مختصر MP3 اپ لوڈ کریں۔<br>
+3. تمام اوقات اور ON/OFF سیٹنگ محفوظ کریں۔<br>
+4. START AUTO دبائیں۔<br>
+5. موبائل چارجنگ پر رکھیں۔<br>
+6. ایپ کھلی اور اسکرین آن رکھیں۔
+</div>
+</div>
+
+</main>
+
+<footer>
+The Risen High School<br>
+Bell Management System
+</footer>
+
+<script>
+
+// ======================================
+// DEFAULT TIMETABLE
+// ======================================
+
+const defaults=[
+{id:"assembly",name:"Morning Assembly",urdu:"صبح کی اسمبلی",time:"08:00",type:"assembly"},
+{id:"p1",name:"Period 1",urdu:"پہلا پیریڈ",time:"08:15",type:"period"},
+{id:"p2",name:"Period 2",urdu:"دوسرا پیریڈ",time:"08:55",type:"period"},
+{id:"p3",name:"Period 3",urdu:"تیسرا پیریڈ",time:"09:35",type:"period"},
+{id:"breakStart",name:"Break Start",urdu:"بریک شروع",time:"10:15",type:"break"},
+{id:"p4",name:"Period 4 / Break End",urdu:"بریک ختم، چوتھا پیریڈ",time:"10:30",type:"break"},
+{id:"p5",name:"Period 5",urdu:"پانچواں پیریڈ",time:"11:10",type:"period"},
+{id:"p6",name:"Period 6",urdu:"چھٹا پیریڈ",time:"11:50",type:"period"},
+{id:"p7",name:"Period 7",urdu:"ساتواں پیریڈ",time:"12:30",type:"period"},
+{id:"p8",name:"Period 8",urdu:"آٹھواں پیریڈ",time:"13:10",type:"period"},
+{id:"dismissal",name:"School Dismissal",urdu:"اسکول کی چھٹی",time:"13:50",type:"dismissal"}
+];
+
+let events=loadSettings();
+let running=false;
+let audioContext=null;
+let timer=null;
+let wakeLock=null;
+let duaBlob=null;
+let duaObjectURL=null;
+let duaAudio=null;
+
+// ======================================
+// SAVE AND LOAD SETTINGS
+// ======================================
+
+function loadSettings(){
+ try{
+  const saved=JSON.parse(localStorage.getItem("risenSettings"));
+  if(Array.isArray(saved)){
+   return defaults.map(d=>{
+    const old=saved.find(x=>x.id===d.id);
+    return old?{...d,time:old.time,enabled:old.enabled!==false}:{...d,enabled:true};
+   });
+  }
+ }catch(e){}
+ return defaults.map(d=>({...d,enabled:true}));
+}
+
+function renderEvents(){
+ document.getElementById("events").innerHTML=events.map(e=>`
+ <div class="event">
+  <div class="eventtop">
+   <div>
+    <div class="eventname">${e.name}</div>
+    <div class="urdu">${e.urdu}</div>
+   </div>
+   <span class="muted">${e.type}</span>
+  </div>
+  <div class="eventbottom">
+   <div>
+    <label>Bell Time</label>
+    <input type="time" id="time-${e.id}" value="${e.time}">
+   </div>
+   <label class="switch">
+    <input type="checkbox" id="on-${e.id}" ${e.enabled?"checked":""}>
+    Bell ON
+   </label>
+  </div>
+ </div>
+ `).join("");
+}
+
+function saveSettings(){
+ for(const e of events){
+  const time=document.getElementById("time-"+e.id).value;
+  if(!time){
+   alert("Please enter time for "+e.name);
+   return;
+  }
+  e.time=time;
+  e.enabled=document.getElementById("on-"+e.id).checked;
+ }
+
+ localStorage.setItem("risenSettings",JSON.stringify(events));
+ saveHoliday();
+ alert("All settings saved successfully!");
+ renderEvents();
+}
+
+// ======================================
+// CLOCK
+// ======================================
+
+function updateClock(){
+ const now=new Date();
+ document.getElementById("clock").textContent=
+ now.toLocaleTimeString("en-US");
+ document.getElementById("date").textContent=
+ now.toLocaleDateString("en-PK",{year:"numeric",month:"long",day:"numeric"});
+ document.getElementById("day").textContent=
+ now.toLocaleDateString("en-US",{weekday:"long"});
+}
+setInterval(updateClock,1000);
+updateClock();
+
+// ======================================
+// AUDIO ENGINE
+// ======================================
+
+async function prepareAudio(){
+ const AC=window.AudioContext||window.webkitAudioContext;
+ if(!AC){
+  alert("Audio not supported in this browser.");
+  return false;
+ }
+ if(!audioContext)audioContext=new AC();
+ if(audioContext.state==="suspended")await audioContext.resume();
+ return true;
+}
+
+function chime(freq,duration,delay){
+ const start=audioContext.currentTime+delay;
+ const osc=audioContext.createOscillator();
+ const gain=audioContext.createGain();
+
+ osc.type="sine";
+ osc.frequency.setValueAtTime(freq,start);
+ gain.gain.setValueAtTime(0.001,start);
+ gain.gain.linearRampToValueAtTime(0.38,start+0.04);
+ gain.gain.exponentialRampToValueAtTime(0.001,start+duration);
+
+ osc.connect(gain);
+ gain.connect(audioContext.destination);
+ osc.start(start);
+ osc.stop(start+duration+0.05);
+}
+
+function playType(type){
+ if(!audioContext)return;
+
+ let pattern=[];
+
+ if(type==="assembly"){
+  pattern=[[880,0.9,0],[660,0.9,1.1],[880,0.9,2.2]];
+ }
+ else if(type==="period"){
+  pattern=[[880,0.65,0]];
+ }
+ else if(type==="break"){
+  pattern=[[660,0.65,0],[660,0.65,0.9]];
+ }
+ else if(type==="dismissal"){
+  pattern=[[880,1,0],[660,1,1.2],[880,1,2.4],[660,1,3.6]];
+ }
+
+ pattern.forEach(p=>chime(p[0],p[1],p[2]));
+}
+
+async function testSound(type){
+ if(await prepareAudio())playType(type);
+}
+
+async function manualBell(){
+ if(await prepareAudio())playType("period");
+}
+
+// ======================================
+// DUA AUDIO STORAGE - INDEXED DB
+// ======================================
+
+function openDB(){
+ return new Promise((resolve,reject)=>{
+  const request=indexedDB.open("RisenBellAudioDB",1);
+
+  request.onupgradeneeded=()=>{
+   const db=request.result;
+   if(!db.objectStoreNames.contains("audio")){
+    db.createObjectStore("audio");
+   }
+  };
+
+  request.onsuccess=()=>resolve(request.result);
+  request.onerror=()=>reject(request.error);
+ });
+}
+
+async function saveBlob(blob){
+ const db=await openDB();
+
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction("audio","readwrite");
+  tx.objectStore("audio").put(blob,"assemblyDua");
+  tx.oncomplete=()=>resolve();
+  tx.onerror=()=>reject(tx.error);
+ });
+}
+
+async function getBlob(){
+ const db=await openDB();
+
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction("audio","readonly");
+  const req=tx.objectStore("audio").get("assemblyDua");
+  req.onsuccess=()=>resolve(req.result||null);
+  req.onerror=()=>reject(req.error);
+ });
+}
+
+async function removeBlob(){
+ const db=await openDB();
+
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction("audio","readwrite");
+  tx.objectStore("audio").delete("assemblyDua");
+  tx.oncomplete=()=>resolve();
+  tx.onerror=()=>reject(tx.error);
+ });
+}
+
+document.getElementById("duaFile").addEventListener("change",e=>{
+ const file=e.target.files[0];
+
+ if(!file)return;
+
+ if(!file.type.startsWith("audio/")){
+  alert("Please select an audio file.");
+  e.target.value="";
+  return;
+ }
+
+ duaBlob=file;
+ document.getElementById("duaStatus").textContent=
+ "Selected: "+file.name+" - Save Audio دبائیں";
+});
+
+async function saveDua(){
+ try{
+  if(!duaBlob){
+   alert("Please select an audio file first.");
+   return;
+  }
+
+  await saveBlob(duaBlob);
+  await loadDua();
+
+  document.getElementById("duaStatus").textContent=
+  "✓ Assembly Dua Audio Saved Successfully";
+
+  alert("Dua audio saved!");
+ }catch(e){
+  alert("Audio save failed. Please try again.");
+ }
+}
+
+async function loadDua(){
+ try{
+  duaBlob=await getBlob();
+
+  if(duaObjectURL)URL.revokeObjectURL(duaObjectURL);
+  duaObjectURL=null;
+  duaAudio=null;
+
+  if(duaBlob){
+   duaObjectURL=URL.createObjectURL(duaBlob);
+   duaAudio=new Audio(duaObjectURL);
+   duaAudio.preload="auto";
+
+   document.getElementById("duaStatus").textContent=
+   "✓ Dua audio is saved and ready.";
+  }else{
+   document.getElementById("duaStatus").textContent=
+   "No Dua audio uploaded.";
+  }
+ }catch(e){
+  console.log(e);
+ }
+}
+
+async function testDua(){
+ try{
+  if(!duaAudio)await loadDua();
+
+  if(!duaAudio){
+   alert("Please upload and save Dua audio first.");
+   return;
+  }
+
+  if(duaAudio.paused){
+   duaAudio.currentTime=0;
+   await duaAudio.play();
+  }
+ }catch(e){
+  alert("Unable to play audio.");
+ }
+}
+
+async function deleteDua(){
+ if(!confirm("Delete saved Assembly Dua audio?"))return;
+
+ try{
+  if(duaAudio)duaAudio.pause();
+  await removeBlob();
+
+  if(duaObjectURL)URL.revokeObjectURL(duaObjectURL);
+
+  duaBlob=null;
+  duaAudio=null;
+  duaObjectURL=null;
+
+  document.getElementById("duaFile").value="";
+  document.getElementById("duaStatus").textContent=
+  "No Dua audio uploaded.";
+
+  alert("Dua audio deleted.");
+ }catch(e){
+  alert("Could not delete audio.");
+ }
+}
+
+// ======================================
+// ASSEMBLY: DUA + BELL AT SAME TIME
+// ======================================
+
+async function assemblyStart(){
+ // Both begin together, without waiting for the Dua to finish.
+ if(duaAudio){
+  try{
+   duaAudio.pause();
+   duaAudio.currentTime=0;
+   const playPromise=duaAudio.play();
+   if(playPromise)playPromise.catch(e=>console.log("Dua playback:",e));
+  }catch(e){
+   console.log(e);
+  }
+ }
+
+ playType("assembly");
+}
+
+// ======================================
+// AUTOMATIC SYSTEM
+// ======================================
+
+async function startSystem(){
+ if(!await prepareAudio())return;
+
+ running=true;
+
+ document.getElementById("status").textContent=
+ "SYSTEM RUNNING - AUTOMATIC MODE";
+ document.getElementById("status").classList.add("active");
+
+ if(timer)clearInterval(timer);
+
+ timer=setInterval(checkSchedule,500);
+
+ await requestWakeLock();
+ checkSchedule();
+}
+
+function stopSystem(){
+ running=false;
+
+ if(timer)clearInterval(timer);
+ timer=null;
+
+ if(wakeLock){
+  wakeLock.release();
+  wakeLock=null;
+ }
+
+ document.getElementById("status").textContent="SYSTEM STOPPED";
+ document.getElementById("status").classList.remove("active");
+}
+
+async function requestWakeLock(){
+ if("wakeLock" in navigator){
+  try{
+   wakeLock=await navigator.wakeLock.request("screen");
+  }catch(e){
+   console.log("Wake lock unavailable");
+  }
+ }
+}
+
+// ======================================
+// SCHEDULE CHECKER
+// ======================================
+
+function checkSchedule(){
+ if(!running)return;
+
+ const now=new Date();
+ const day=now.getDay();
+
+ const holiday=document.getElementById("sundayHoliday").checked;
+
+ if(day===0 && holiday)return;
+
+ const current=
+ String(now.getHours()).padStart(2,"0")+":"+
+ String(now.getMinutes()).padStart(2,"0");
+
+ const dateKey=[
+ now.getFullYear(),
+ String(now.getMonth()+1).padStart(2,"0"),
+ String(now.getDate()).padStart(2,"0")
+ ].join("-");
+
+ for(const e of events){
+  if(!e.enabled || e.time!==current)continue;
+
+  const key="risenDone-"+dateKey+"-"+e.id;
+
+  if(localStorage.getItem(key))continue;
+
+  // Mark first to prevent duplicate ringing
+  localStorage.setItem(key,"yes");
+
+  if(e.type==="assembly"){
+   assemblyStart();
+  }else{
+   playType(e.type);
+  }
+
+  document.getElementById("status").textContent=
+  "🔔 "+e.name+" - "+e.urdu;
+ }
+}
+
+// ======================================
+// HOLIDAY SETTINGS
+// ======================================
+
+function saveHoliday(){
+ localStorage.setItem(
+  "risenSunday",
+  document.getElementById("sundayHoliday").checked?"yes":"no"
+ );
+}
+
+const savedHoliday=localStorage.getItem("risenSunday");
+if(savedHoliday!==null){
+ document.getElementById("sundayHoliday").checked=
+ savedHoliday==="yes";
+}
+
+document.getElementById("sundayHoliday").addEventListener("change",saveHoliday);
+
+// ======================================
+// SCREEN WAKE LOCK
+// ======================================
+
+document.addEventListener("visibilitychange",()=>{
+ if(document.visibilityState==="visible"&&running){
+  requestWakeLock();
+ }
+});
+
+// ======================================
+// INITIAL LOAD
+// ======================================
+
+renderEvents();
+loadDua();
+
+</script>
+</body>
+</html>
+
